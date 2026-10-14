@@ -1,4 +1,4 @@
-# Communication Library (`App/Communication`)
+# AEV Autonomy Protocol & Telemetry Communication Engine (`App/Communication`)
 
 ## 1. Overview
 The **Communication Library** manages bidirectional serial communication between the STM32 Low-Level Controller and the high-level autonomy compute (such as an NVIDIA Jetson Orin/Xavier or a laptop running a test terminal like HTerm).

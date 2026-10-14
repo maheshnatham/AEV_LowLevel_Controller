@@ -1,4 +1,4 @@
-# LED Indicator Library (`App/Indicators`)
+# AEV Visual Indicators & LED Diagnostic Fault Codes (`App/Indicators`)
 
 ## 1. Overview
 The **LED Indicator Library** ([`led_indicator.c`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Indicators/led_indicator.c), [`led_indicator.h`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Indicators/led_indicator.h)) drives the three onboard user LEDs on the **STM32 NUCLEO-H723ZG** board to provide real-time visual feedback of vehicle state, autonomy serial connection, and diagnostic fault blink codes.

@@ -1,20 +1,20 @@
-# Sensors & State Estimation Library (`App/Sensors`)
+# AEV Sensor Acquisition & Extended Kalman Filter (`App/Sensors`)
 
 ## 1. Overview
-The **Sensors Library** acquires feedback from the vehicle's physical sensors, filters out high-frequency inverter EMI, and executes real-time state estimation:
-1. **Hardware ADC Acquisition** ([`sensors.c`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Sensors/sensors.c)): 16-bit ADC sampling with continuous Circular DMA oversampling and Exponential Moving Average (EMA) filtering.
-2. **Extended Kalman Filter (EKF)** ([`ekf.c`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Sensors/ekf.c)): Dual-state filter estimating both true steering angle/voltage and angular velocity.
+The **AEV Sensor Acquisition & State Estimation Library** ([`sensors.c`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Sensors/sensors.c), [`sensors.h`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Sensors/sensors.h), [`ekf.c`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Sensors/ekf.c), [`ekf.h`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Sensors/ekf.h)) acquires feedback from the vehicle's steering rack potentiometer, filters out inverter EMI and motor switching noise, and runs a real-time state estimator:
+1. **Hardware ADC DMA Pipeline**: 16-bit analog sampling with continuous Circular DMA oversampling and Exponential Moving Average (EMA) filtering.
+2. **Extended Kalman Filter (EKF)**: 2-state recursive estimator predicting true steering position and zero-lag angular velocity directly from physical motor effort.
 
 ---
 
 ## 2. Hardware ADC Configuration & Filtering
 
 | Parameter | Configuration |
-|:---|:---|
-| Microcontroller Pin | **PA0** (`ADC1_INP16`) |
+| :--- | :--- |
+| Microcontroller Pin | **PA0** (`ADC1_INP16` on Arduino Header **A0**) |
 | ADC Resolution | **16-bit** ($0$ to $65535$ counts) |
 | DMA Buffer Size | 64 half-words (`ADC_DMA_BUF_SIZE = 64`) |
-| Sampling Mode | Circular DMA (`DMA1_Stream0`) |
+| Sampling Mode | Continuous Circular DMA (`DMA1_Stream0`) |
 | Reference Voltage | $V_{\text{ref}} = 3.3\text{ V}$ |
 
 ### 2.1 Two-Stage Noise Rejection Pipeline

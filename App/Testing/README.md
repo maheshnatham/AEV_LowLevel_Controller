@@ -1,115 +1,78 @@
-# Testing & Diagnostic Suite (`App/Testing`)
+# AEV Testing Suite, Diagnostics & Ground Station GUI (`App/Testing`)
 
 ## 1. Overview
-The **Testing & Diagnostic Suite** provides standalone validation routines to verify hardware connectivity, sensor health, actuator readiness, and communication throughput **before** running the vehicle.
-
-It can be triggered:
-- From the **STM32CubeIDE debugger** (setting a Live Watch variable).
-- In software on startup or before arming.
-- Via a dedicated hardware or serial trigger command.
+The **AEV Testing Suite** provides standalone pre-flight hardware self-tests, live serial packet inspection tools, and a dark-mode graphical ground station for bench-testing the STM32 Low-Level Controller from a laptop or NVIDIA Jetson.
 
 ---
 
-## 2. Available Functions in `system_test.h`
+## 2. Python Ground Station GUI (`aev_diagnostic_gui.py`)
 
-| Function | Description |
-|:---|:---|
-| `SystemTest_RunAll()` | Executes the full 4-stage hardware self-test, prints an ASCII report to UART, and transmits 1x sample binary telemetry packet. |
-| `SystemTest_CheckSensors()` | Samples the steering potentiometer via DMA and verifies voltage is within electrical thresholds ($0.15\text{ V} \le V \le 3.15\text{ V}$). |
-| `SystemTest_CheckActuators()` | Tests DAC1 CH1 (Throttle), DAC1 CH2 (Brake), and TIM3 PWM (Steering), then asserts safe state. |
-| `SystemTest_CheckComm()` | Verifies UART peripheral state and DMA circular buffer status. |
-| `SystemTest_PrintDiagnostics()` | Emits a single-line ASCII diagnostic string for continuous terminal monitoring. |
-| `SystemTest_SendSampleTlm()` | Sends a known binary telemetry frame to test serial decoding on the host computer. |
+A full-featured Python Tkinter application is included to exercise all vehicle functions and inspect live telemetry over UART (`115200 8N1`).
 
----
-
-## 3. How to Run Initial Checks with Laptop & HTerm
-
-### 3.1 Live Watch Trigger via STM32CubeIDE
-1. Start your debugging session in STM32CubeIDE.
-2. In the **Live Expressions** tab, add the variable:
-   ```
-   run_system_test
-   ```
-3. Set its value to **`1`**.
-4. The main loop in [`main.c`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/Core/Src/main.c) detects this, clears the flag back to `0`, and immediately executes `SystemTest_RunAll()`.
-
-### 3.2 Expected Output in HTerm (ASCII Mode)
-Connect HTerm at `115200 8N1` and select **ASCII** mode in the received pane. You will see:
-
-```text
-=======================================================
-    AEV LOW-LEVEL CONTROLLER SYSTEM INITIAL CHECKS    
-=======================================================
-[1/4] Sensors Test: Steering Pot = 1.648 V [PASS]
-      -> Raw Block Average = 32742.0 counts (16-bit)
-[2/4] Actuators Test: DAC1 (Throttle/Brake) & TIM3 PWM [PASS]
-      -> Actuators_ApplySafeState() executed successfully.
-[3/4] Comm Test: USART3 @ 115200 8N1 (Circular DMA) [PASS]
-      -> Watchdog Link Status: WAITING FOR COMMAND PACKET
-[4/4] Motion Control: Current State = ACTIVE (PID Closed-Loop)
-      -> Calibrated Center = 1.650 V
-      -> Calibrated Range  = 0.450 V to 2.850 V
-      -> Scale Factor      = 29.17 deg/V
--------------------------------------------------------
-Sending 1x Sample Binary Telemetry Packet (MsgID 0x81)...
-=======================================================
-    SELF-TEST ROUTINE FINISHED. MONITORING READY.     
-=======================================================
+### 2.1 Launching the GUI
+```powershell
+python App\Testing\aev_diagnostic_gui.py
 ```
 
+### 2.2 Dashboard Architecture (Tab 1: Control Deck & Instruments)
+The main window is organized into a side-by-side cockpit:
+
+```
+┌────────────────────────────────────────┬────────────────────────────────────────┐
+│  🎮 VEHICLE TRANSMISSION & COMMAND     │  📊 REAL-TIME VEHICLE TELEMETRY        │
+├────────────────────────────────────────┼────────────────────────────────────────┤
+│ • Transmission: Neutral / Fwd / Rev    │ • System State: INIT/CALIB/ACTIVE/FAULT│
+│ • Steering Angle Slider (-30° to +30°) │ • Autonomy Serial Link: ONLINE/OFFLINE │
+│ • Throttle Effort Slider (0% to 100%)  │ • Potentiometer Meter (0.0V - 3.3V)    │
+│ • Braking Selector: Off / Active / Emer│ • Live Metrics: Angle, Effort, DACs   │
+│ • Big Red EMERGENCY STOP (E-STOP)      │ • System Stats: Uptime, TX/RX, Errors  │
+│ • Streaming Mode: Start 50 Hz / Step   │                                        │
+├────────────────────────────────────────┴────────────────────────────────────────┤
+│  📜 LIVE SERIAL PACKET CONSOLE (Hex Bytes + Parsed Engineering Values)          │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+1. **Auto-Forward Transmission**:
+   - The transmission defaults to **Forward (1)** on startup.
+   - Moving the Throttle Slider automatically selects Forward gear and transmits the updated packet, preventing accidental neutral lockouts during bench testing.
+2. **Watchdog Heartbeat Streaming**:
+   - Clicking **"Start 50 Hz Streaming"** starts a background thread transmitting control packets every 20 ms ($50\text{ Hz}$), satisfying the STM32's 200 ms watchdog.
+3. **Emergency Stop (E-STOP)**:
+   - Clicking the high-visibility **E-STOP** button immediately zeroes throttle, applies full emergency brake ($3.3\text{ V}$), and sends `estop = 1` to halt the vehicle.
+4. **Live Packet Log**:
+   - Color-coded text box displaying sent packets (`TX` in blue), received telemetry (`RX` in cyan), and system alerts (`SYS`/`ERR` in amber/red).
+
 ---
 
-## 4. Verification Criteria & Troubleshooting
-
-### Sensor Warning (`WARN: Out of range`)
-- If reported voltage is `< 0.15 V`: Potentiometer ground wire is open or sensor signal is shorted to GND.
-- If reported voltage is `> 3.15 V`: Potentiometer 3.3V reference is shorted or potentiometer wiper is disconnected (floating high).
-- **Correct Value**: When wheels are roughly straight, voltage should be near `1.65 V` ($\approx 32768$ ADC counts).
-
-### Actuator Verification
-- Verifies that DAC1 registers accept writes and that `Actuators_ApplySafeState()` resets throttle DAC to `0.0 V`, brake DAC to `0.0 V`, and steering PWM duty to `0%`.
-
-### Comm Verification
-- Verifies that `huart3` is active with zero error flags and that DMA is actively cycling.
+## 3. Protocol Architecture Guide (Tab 2)
+The GUI embeds an interactive, scrollable protocol visualizer showing:
+- **Binary Envelope**: `SOF1 (0xAA)`, `SOF2 (0x55)`, `MSG_ID`, `SEQ`, `LEN`, `PAYLOAD`, `CRC-16`, `EOF1 (0x55)`, `EOF2 (0xAA)`.
+- **Memory Maps**: Byte offsets, C data types, units, and ranges for both `ControlPayload_t` ($16\text{ bytes}$) and `TelemetryPayload_t` ($26\text{ bytes}$).
+- **Failsafe Rules**: Watchdog timeouts, sensor boundaries, and recovery behaviors.
 
 ---
 
-## 5. Python Graphical Test Bench (`aev_diagnostic_gui.py`)
+## 4. Hardware Self-Test Engine (`system_test.c`)
 
-A standalone, dark-themed Python GUI application ([`aev_diagnostic_gui.py`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Testing/aev_diagnostic_gui.py)) is provided to test all bidirectional communication features from your laptop or Jetson.
+For headless bench testing without the GUI, [`system_test.c`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Testing/system_test.c) runs a 4-stage automated hardware audit:
 
-### 5.1 Launching the GUI
-You can start the GUI in two ways:
-- **Option 1 (One-Click Windows)**: Double-click [`run_gui.bat`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Testing/run_gui.bat).
-- **Option 2 (Terminal)**:
-  ```bash
-  cd App/Testing
-  python aev_diagnostic_gui.py
-  ```
+1. **Sensors Test**: Samples steering potentiometer voltage and checks against thresholds ($0.15\text{V} \le V \le 3.15\text{V}$).
+2. **Actuators Test**: Tests DAC1 registers (Throttle/Brake) and TIM3 PWM compare registers, then restores safe state.
+3. **Communication Test**: Verifies USART3 peripheral state and circular DMA buffer health.
+4. **Motion Control Status**: Checks calibration limits and active control mode.
 
-### 5.2 Futuristic Cockpit Capabilities
-1. **Interactive Radial Steering Gauge**:
-   - Circular dial ($-30.0^\circ$ to $+30.0^\circ$) displaying **Target Steering Needle** (Neon Cyan) and **Actual EKF Angle Needle** (Neon Green).
-   - Click or drag anywhere on the dial to steer interactively!
-   - 1-click "Center Wheels (0.0°)" quick button.
-2. **Top-Down Vector Vehicle Chassis HUD**:
-   - Dynamic 2D geometric wireframe of the Autonomous Electric Vehicle.
-   - **Front Wheels rotate dynamically** in real time as steering angle changes!
-   - **Rear Drive Wheels illuminate** (Neon Green on acceleration, Neon Red on braking).
-3. **50 Hz Rolling Real-Time Oscilloscope**:
-   - Multi-trace rolling waveform display plotting Target Angle (Cyan) vs Actual EKF Angle (Green) in real time.
-4. **Steering Potentiometer Safety Bounds Meter**:
-   - Horizontal sensor bar highlighting the safe operational zone ($0.15\text{V}$ to $3.15\text{V}$) vs endstop fault zones ($<0.15\text{V}$, $>3.15\text{V}$).
-5. **Board Hardware Virtual LED Simulators**:
-   - Live simulated glowing LEDs at the top of the HUD:
-     - 🟢 **`SYS` (PB0)**: Heartbeat pulses.
-     - 🟡 **`COMM 10Hz` (PE1)**: Flashes rapidly on data transfer.
-     - 🔴 **`FAULT` (PB14)**: Glows on vehicle fault.
-6. **Drivetrain & Control Deck**:
-   - Modern gear selector pills: `P / NEUTRAL`, `D / FORWARD`, `R / REVERSE`.
-   - Accelerator slider ($0\%$ to $100\%$) and braking mode buttons.
-   - High-visibility **EMERGENCY STOP (E-STOP)** reactor button.
-7. **Serial Packet Radar Console**:
-   - Color-coded hex frames + decoded engineering parameters for both TX and RX with auto-scroll.
+### Triggering via STM32CubeIDE Live Expressions
+1. In STM32CubeIDE Live Expressions, add variable:
+   ```c
+   run_system_test
+   ```
+2. Set value to **`1`**.
+3. Open **HTerm** (`115200 8N1`, ASCII view) to read the generated diagnostic report.
 
+---
+
+## 5. Repository Push Script (`push_to_github.bat`)
+
+A 1-click batch script [`push_to_github.bat`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/push_to_github.bat) is located in the project root:
+- Automatically loads portable Git into the environment session.
+- Runs `git push -u origin main` with browser authentication.
