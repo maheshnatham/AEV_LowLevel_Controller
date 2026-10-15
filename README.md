@@ -36,7 +36,7 @@ flowchart LR
 
     Jetson <== "Framed UART (115200 8N1)" ==> Comm
     Comm --> State
-    RackPot -->|"ADC1 IN15 (PA3)"| EKF
+    RackPot -->|"ADC1 IN15 (PA0)"| EKF
     State --> EKF
     EKF --> PID
     PID -->|"TIM3 PWM (PC6) + DIR (PD14)"| Cytron
