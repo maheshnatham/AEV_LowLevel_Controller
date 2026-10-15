@@ -2,8 +2,8 @@
 ### Real-Time Drive-by-Wire Embedded Controller for Autonomous Electric Vehicles
 
 [![Target Microcontroller](https://img.shields.io/badge/MCU-STM32H723ZG%20(550MHz%20Cortex--M7)-002B49?style=flat-square&logo=stmicroelectronics)](https://www.st.com/en/microcontrollers-microprocessors/stm32h723zg.html)
-[![RTOS / Scheduler](https://img.shields.io/badge/Loop%20Rate-100%20Hz%20Deterministic%20(TIM6)-10B981?style=flat-square)](App/AppCore/README.md)
-[![Communication](https://img.shields.io/badge/Telemetry-50%20Hz%20Binary%20Framed%20UART-3B82F6?style=flat-square)](App/Communication/README.md)
+[![RTOS / Scheduler](https://img.shields.io/badge/Loop%20Rate-100%20Hz%20Deterministic%20(TIM6)-10B981?style=flat-square)](App/AppCore/AppCore_README.md)
+[![Communication](https://img.shields.io/badge/Telemetry-50%20Hz%20Binary%20Framed%20UART-3B82F6?style=flat-square)](App/Communication/Comm_README.md)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 
 ---
@@ -52,13 +52,13 @@ flowchart LR
 
 | Feature | Subsystem | Description |
 | :--- | :--- | :--- |
-| **Self-Discovering Steering Calibration** | [`App/MotionControl`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/MotionControl/README.md) | Authoritative $\pm 45\%$ torque sweep with 100 ms windowed stall detection. Automatically discovers mechanical hardstops, voltage span, degrees/volt factor, and centers the rack. |
-| **Automatic Motor Polarity Detection** | [`App/MotionControl`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/MotionControl/README.md) | Detects whether positive drive increases or decreases sensor voltage, auto-inverting feedback signs to mathematically eliminate closed-loop runaway. |
-| **Endstop Soft Limits & Current Protection** | [`App/AppCore`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/AppCore/README.md) | Electronic boundary clamps shut down motor effort within 40 mV of physical stops, eliminating stall current burnouts. |
-| **Extended Kalman Filter (EKF)** | [`App/Sensors`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Sensors/README.md) | 2-state Kalman filter estimating true angular position and zero-lag angular velocity directly from 16-bit oversampled ADC DMA data. |
-| **Derivative-on-Measurement PID** | [`App/MotionControl`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/MotionControl/README.md) | D-term damped using EKF velocity instead of noisy finite-difference error, completely preventing "derivative kick" when target setpoints step abruptly. |
+| **Self-Discovering Steering Calibration** | [`App/MotionControl`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/MotionControl/Motion_README.md) | Authoritative $\pm 45\%$ torque sweep with 100 ms windowed stall detection. Automatically discovers mechanical hardstops, voltage span, degrees/volt factor, and centers the rack. |
+| **Automatic Motor Polarity Detection** | [`App/MotionControl`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/MotionControl/Motion_README.md) | Detects whether positive drive increases or decreases sensor voltage, auto-inverting feedback signs to mathematically eliminate closed-loop runaway. |
+| **Endstop Soft Limits & Current Protection** | [`App/AppCore`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/AppCore/AppCore_README.md) | Electronic boundary clamps shut down motor effort within 40 mV of physical stops, eliminating stall current burnouts. |
+| **Extended Kalman Filter (EKF)** | [`App/Sensors`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Sensors/Sensor_README.md) | 2-state Kalman filter estimating true angular position and zero-lag angular velocity directly from 16-bit oversampled ADC DMA data. |
+| **Derivative-on-Measurement PID** | [`App/MotionControl`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/MotionControl/Motion_README.md) | D-term damped using EKF velocity instead of noisy finite-difference error, completely preventing "derivative kick" when target setpoints step abruptly. |
 | **True Analog Traction & Brake Output** | [`App/Actuators`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Actuators/README.md) | Dual 12-bit DAC outputs (PA4 Throttle, PA5 Brake) delivering pure 0.0 V to 3.3 V analog signals to commercial motor controllers without PWM ripple. |
-| **Zero-CPU UART Reception** | [`App/Communication`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Communication/README.md) | Continuous circular DMA streaming with CRC-16 verification, 50 Hz binary telemetry, and 200 ms failsafe watchdog. |
+| **Zero-CPU UART Reception** | [`App/Communication`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Communication/Comm_README.md) | Continuous circular DMA streaming with CRC-16 verification, 50 Hz binary telemetry, and 200 ms failsafe watchdog. |
 | **Ground Station Diagnostic GUI** | [`App/Testing`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Testing/README.md) | Full-featured dark-mode Python testing GUI for real-time telemetry plotting, steering dial control, throttle slider, and raw hex packet monitoring. |
 
 ---
@@ -97,13 +97,13 @@ App/
 └── Testing/         # Diagnostics, ASCII self-tests & Python Diagnostic GUI
 ```
 
-- [`AppCore/README.md`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/AppCore/README.md): Supervisory execution, task scheduling, thread-safe calibration requests.
-- [`MotionControl/README.md`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/MotionControl/README.md): Mathematical derivations for stall detection, auto-polarity, and PID tuning.
+- [`AppCore/AppCore_README.md`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/AppCore/AppCore_README.md): Supervisory execution, task scheduling, thread-safe calibration requests.
+- [`MotionControl/Motion_README.md`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/MotionControl/Motion_README.md): Mathematical derivations for stall detection, auto-polarity, and PID tuning.
 - [`Actuators/README.md`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Actuators/README.md): DAC counts formulas, Cytron driver interfacing, and failsafe zeroing.
-- [`Sensors/README.md`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Sensors/README.md): ADC DMA block filtering, EKF state equations, and covariance tuning.
-- [`Communication/README.md`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Communication/README.md): Packet structures, byte offsets, CRC-16 algorithm, and HTerm hex strings.
-- [`SafetyMonitor/README.md`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/SafetyMonitor/README.md): Multi-layer safety architecture and boundary enforcement.
-- [`Indicators/README.md`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Indicators/README.md): LED flash patterns, blink-code diagnostic lookup table.
+- [`Sensors/Sensor_README.md`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Sensors/Sensor_README.md): ADC DMA block filtering, EKF state equations, and covariance tuning.
+- [`Communication/Comm_README.md`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Communication/Comm_README.md): Packet structures, byte offsets, CRC-16 algorithm, and HTerm hex strings.
+- [`SafetyMonitor/Safety_README.md`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/SafetyMonitor/Safety_README.md): Multi-layer safety architecture and boundary enforcement.
+- [`Indicators/Led_README.md`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Indicators/Led_README.md): LED flash patterns, blink-code diagnostic lookup table.
 - [`Testing/README.md`](file:///d:/Ph.D%202026-2027/Projects/AEV/STM32/AEV_LowLevel_Controller/AEV_LowLevel_ControllerV1/App/Testing/README.md): Step-by-step bench testing instructions and Python GUI manual.
 
 ---

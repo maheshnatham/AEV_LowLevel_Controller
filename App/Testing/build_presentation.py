@@ -923,7 +923,7 @@ def main():
 
     output_path = os.path.join(
         os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")),
-        "AEV_LowLevel_Controller_Executive_Overview.pptx"
+        "AEV_Low_Level_Controller_Architecture_Flowcharts.pptx"
     )
     prs.save(output_path)
     print(f"[SUCCESS] Executive Presentation saved to:\n  -> {output_path}")
